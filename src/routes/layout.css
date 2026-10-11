@@ -1,0 +1,360 @@
+@import 'tailwindcss';
+
+@font-face {
+	font-family: 'Shentox';
+	src: url('/Shentox-Fonts/Shentox-Regular.otf') format('opentype');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Shentox';
+	src: url('/Shentox-Fonts/Shentox-Medium.otf') format('opentype');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Shentox';
+	src: url('/Shentox-Fonts/Shentox-SemiBold.otf') format('opentype');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Shentox';
+	src: url('/Shentox-Fonts/Shentox-Bold.otf') format('opentype');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@theme {
+	--font-sans: 'Shentox', Arial, sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
+
+	/* Accent — brand greens. accent-ink (links, active states) gets a brighter step in dark mode. */
+	--color-accent: #8cf04c; /* Volt */
+	--color-accent-hover: #a6f574;
+	--color-accent-ink: #2fb24a; /* Pitch */
+	--color-accent-deep: #1e5a2b; /* Turf */
+	--color-accent-glow: #c8f86a; /* lime end of the primary-button gradient */
+
+	/* Ink ramp — fixed brand steps, used for permanently-dark chrome (sidebar, footer) */
+	--color-ink-950: #161716;
+	--color-ink-900: #232423;
+	--color-ink-800: #2c2d2c;
+	--color-ink-700: #3a3b3a;
+	--color-ink-500: #5e605d;
+	--color-ink-400: #8a8c89;
+	--color-ink-300: #b9bbb7;
+
+	/* Line & paper — fixed brand steps */
+	--color-line: #dadbd7;
+	--color-paper-100: #ecedea;
+	--color-paper-50: #f6f6f4;
+
+	/*
+	 * Semantic surface/text tokens for the dashboard content area. Light defaults here;
+	 * flipped for dark mode below. Every dashboard component should reach for these
+	 * (bg-bg / bg-bg-raised / bg-bg-sunken / text-fg / text-fg-soft / text-fg-faint /
+	 * border-border) rather than the raw ink/paper ramp, so the app adapts automatically.
+	 */
+	--color-bg: var(--color-paper-50);
+	--color-bg-raised: #ffffff;
+	--color-bg-sunken: var(--color-paper-100);
+	--color-fg: var(--color-ink-950);
+	--color-fg-soft: var(--color-ink-700);
+	--color-fg-faint: var(--color-ink-500);
+	--color-border: var(--color-line);
+
+	/*
+	 * Categorical palette for the five position groups — chosen palette (amethyst / teal /
+	 * turquoise / green-yellow / light green), the same in light and dark mode. Colour is a
+	 * supporting cue: marker shape is the primary identity channel (ScatterChart), always
+	 * with a legend and text labels. Known trade-offs from the dataviz validator: FB and CD
+	 * are close to each other, the two light greens are faint on light surfaces, and
+	 * amethyst is faint on dark ones — shape and labels carry identity there.
+	 */
+	--color-pos-cf: #3c1642; /* Center Forward — dark amethyst */
+	--color-pos-wa: #086375; /* Wide Attacker — stormy teal */
+	--color-pos-mf: #1dd3b0; /* Midfield — turquoise */
+	--color-pos-fb: #affc41; /* Full Back — green-yellow */
+	--color-pos-cd: #b2ff9e; /* Central Defender — light green */
+
+	/*
+	 * Status pair for percentile shading (below/above the position-group median). Fixed,
+	 * mode-invariant steps from the dataviz skill's reserved status scale — not the
+	 * categorical palette — since this encodes good/bad, not series identity. The cell's
+	 * numeric value is always shown as text regardless, so colour is a supporting cue.
+	 */
+	--color-good: #0ca30c;
+	--color-critical: #d03b3b;
+
+	/*
+	 * Five percentile bands (0-20, 20-40, 40-60, 60-80, 80-100 within the position group)
+	 * for the player-page bars: red through a muted middle to bright green. Mode-invariant;
+	 * every bar also prints its value, and percentile bars print the percentile, so colour
+	 * is a glanceable cue rather than the only carrier.
+	 */
+	--color-pct-1: #ed2938; /* Imperial Red */
+	--color-pct-2: #b25f4a; /* Matrix */
+	--color-pct-3: #77945c; /* Ivy */
+	--color-pct-4: #3bca6d; /* Medium Sea Green */
+	--color-pct-5: #00ff7f; /* Spring Green */
+
+	/*
+	 * Match viewer. Home/away identity on the tracking pitch — the first two validated
+	 * categorical steps (blue/orange), passing CVD and contrast checks on both pitch
+	 * surfaces. Colour follows the side, not the club's kit, so it stays legible when
+	 * kits clash or are white. Pitch-control shading diverges between the two with a
+	 * neutral midpoint (--color-pitch).
+	 */
+	--color-team-home: #2a78d6;
+	--color-team-away: #eb6834;
+	--color-pitch: #ffffff;
+	--color-pitch-line: var(--color-ink-300);
+
+	/* Club crests: no treatment on light surfaces; a faint halo on dark ones (below) keeps
+	   crests with black lettering (e.g. Central Coast, Western United) legible. */
+	--crest-filter: none;
+
+	/* Background decoration (BackgroundDecor.svelte): green glows and SkillCorner's "S"
+	   graphic behind the content, after skillcorner.com. */
+	--decor-glow: rgb(47 178 74 / 0.1);
+	--decor-glow-2: rgb(140 240 76 / 0.08);
+	--decor-s: rgb(0 168 47 / 0.05);
+}
+
+/*
+ * Dark mode. Applied automatically when the OS prefers dark — unless the viewer has
+ * explicitly picked a theme with the ThemeToggle, in which case data-theme wins both
+ * ways: a manual "light" pick beats OS-dark, and a manual "dark" pick (last block)
+ * applies dark even when the OS is light.
+ */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--color-bg: #181918;
+		--color-accent-ink: #7be257;
+		--decor-glow: rgb(47 178 74 / 0.36);
+		--decor-glow-2: rgb(140 240 76 / 0.08);
+		--decor-s: rgb(0 168 47 / 0.09);
+		--color-bg-raised: var(--color-ink-900);
+		--color-bg-sunken: var(--color-ink-800);
+		--color-fg: var(--color-paper-50);
+		--color-fg-soft: var(--color-ink-300);
+		--color-fg-faint: var(--color-ink-400);
+		--color-border: var(--color-ink-700);
+
+		--color-team-home: #3987e5;
+		--color-team-away: #d95926;
+		--color-pitch: var(--color-ink-900);
+		--color-pitch-line: var(--color-ink-500);
+		--crest-filter: drop-shadow(0 0 0.5px rgb(255 255 255 / 0.7)) drop-shadow(0 0 1px rgb(255 255 255 / 0.35));
+	}
+}
+
+:root[data-theme='dark'] {
+	--color-bg: #181918;
+	--color-accent-ink: #7be257;
+	--decor-glow: rgb(47 178 74 / 0.36);
+	--decor-glow-2: rgb(140 240 76 / 0.08);
+	--decor-s: rgb(0 168 47 / 0.09);
+	--color-bg-raised: var(--color-ink-900);
+	--color-bg-sunken: var(--color-ink-800);
+	--color-fg: var(--color-paper-50);
+	--color-fg-soft: var(--color-ink-300);
+	--color-fg-faint: var(--color-ink-400);
+	--color-border: var(--color-ink-700);
+
+	--color-team-home: #3987e5;
+	--color-team-away: #d95926;
+	--color-pitch: var(--color-ink-900);
+	--color-pitch-line: var(--color-ink-500);
+	--crest-filter: drop-shadow(0 0 0.5px rgb(255 255 255 / 0.7)) drop-shadow(0 0 1px rgb(255 255 255 / 0.35));
+}
+
+@layer base {
+	body {
+		margin: 0;
+		background: var(--color-bg);
+		color: var(--color-fg);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	/* In the base layer so a component's own text colour utilities win. */
+	a {
+		color: var(--color-accent-ink);
+		text-decoration: none;
+	}
+
+	a:hover {
+		color: var(--color-fg);
+	}
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+}
+
+@layer components {
+	/* Primary action: volt-to-lime gradient with a soft glow on hover. */
+	.btn-accent {
+		background-image: linear-gradient(100deg, var(--color-accent) 0%, var(--color-accent-glow) 100%);
+		color: var(--color-ink-950);
+		transition:
+			box-shadow 0.2s ease,
+			filter 0.2s ease;
+	}
+
+	.btn-accent:hover {
+		filter: brightness(1.06) saturate(1.1);
+		box-shadow:
+			0 0 0 1px rgb(140 240 76 / 0.5),
+			0 6px 28px rgb(140 240 76 / 0.35);
+	}
+
+	/*
+	 * Range slider in the same volt-to-lime gradient as .btn-accent. Set --fill (0–100%)
+	 * inline from the value so WebKit/Blink can paint the filled part; Firefox uses
+	 * ::-moz-range-progress instead. The thumb's dark ring keeps it visible on light cards.
+	 */
+	.range-accent {
+		--fill: 0%;
+		appearance: none;
+		height: 18px;
+		margin: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.range-accent::-webkit-slider-runnable-track {
+		height: 6px;
+		border-radius: 999px;
+		background:
+			linear-gradient(90deg, var(--color-accent), var(--color-accent-glow)) 0 / var(--fill) 100% no-repeat,
+			var(--color-bg-sunken);
+		box-shadow: inset 0 0 0 1px var(--color-border);
+	}
+
+	.range-accent::-moz-range-track {
+		height: 6px;
+		border-radius: 999px;
+		background: var(--color-bg-sunken);
+		box-shadow: inset 0 0 0 1px var(--color-border);
+	}
+
+	.range-accent::-moz-range-progress {
+		height: 6px;
+		border-radius: 999px;
+		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-glow));
+	}
+
+	.range-accent::-webkit-slider-thumb {
+		appearance: none;
+		width: 16px;
+		height: 16px;
+		margin-top: -5px;
+		border-radius: 50%;
+		background: var(--color-accent);
+		border: 2px solid var(--color-ink-950);
+		box-shadow: 0 0 0 3px rgb(140 240 76 / 0.25);
+		transition: box-shadow 0.15s ease;
+	}
+
+	.range-accent::-moz-range-thumb {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background: var(--color-accent);
+		border: 2px solid var(--color-ink-950);
+		box-shadow: 0 0 0 3px rgb(140 240 76 / 0.25);
+		transition: box-shadow 0.15s ease;
+	}
+
+	.range-accent:hover::-webkit-slider-thumb,
+	.range-accent:active::-webkit-slider-thumb {
+		box-shadow: 0 0 0 5px rgb(140 240 76 / 0.35);
+	}
+
+	.range-accent:hover::-moz-range-thumb,
+	.range-accent:active::-moz-range-thumb {
+		box-shadow: 0 0 0 5px rgb(140 240 76 / 0.35);
+	}
+
+	.range-accent:focus-visible {
+		outline: 2px solid var(--color-accent-ink);
+		outline-offset: 4px;
+	}
+}
+
+.crest {
+	filter: var(--crest-filter);
+}
+
+/* Fieldline chamfer shapes — cut corners used across cards, headers and CTAs */
+.chamfer-sm {
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+/*
+ * clip-path trims a bordered card's border off its two cut corners, so the diagonals
+ * would have no edge. Draw them as 1px lines that inherit the card's border colour
+ * (hover/focus colours included). Positions are in padding-box coordinates, i.e. 1px
+ * inside the border box the clip-path is measured from — hence 11px rather than 12px.
+ */
+.chamfer-sm.border {
+	position: relative;
+}
+
+.chamfer-sm.border::before,
+.chamfer-sm.border::after {
+	content: '';
+	position: absolute;
+	width: calc(12px * 1.41421);
+	height: 0;
+	border-top: 1px solid;
+	border-top-color: inherit;
+	transform-origin: 0 0;
+	pointer-events: none;
+}
+
+/* Top-right cut: from (100% - 12px, 0) down to (100%, 12px); the stroke falls inside. */
+.chamfer-sm.border::before {
+	left: calc(100% - 11px);
+	top: -1px;
+	transform: rotate(45deg);
+}
+
+/* Bottom-left cut: from (0, 100% - 12px) down to (12px, 100%); shift the stroke inward. */
+.chamfer-sm.border::after {
+	left: -1px;
+	top: calc(100% - 11px);
+	transform: rotate(45deg) translateY(-1px);
+}
+
+.chamfer-md {
+	clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+
+.chamfer-section {
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 40px 100%, 0 calc(100% - 40px));
+}
+
+.chamfer-tr {
+	clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+.chamfer-br {
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+
+.chamfer-bl-sm {
+	clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}

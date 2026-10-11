@@ -1,4 +1,44 @@
+# Private Python environment
 .venv/
-data/
+
+# Downloaded source files: the notebooks' SkillCorner downloads and the tracking/event
+# files and image caches the scripts/ loaders fetch into data/raw/ (~2 GB). All
+# re-downloaded on demand. Only the small notebook outputs in data/processed/ are tracked.
+data/*
+!data/processed/
+
+# Jupyter autosaves / Python bytecode
 .ipynb_checkpoints/
 __pycache__/
+*.py[cod]
+
+# Logs
+*.log
+
+# Claude Code per-user settings
+.claude/settings.local.json
+
+# --- SvelteKit web app ---
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

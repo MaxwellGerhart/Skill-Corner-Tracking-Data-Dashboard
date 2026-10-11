@@ -1,0 +1,10 @@
+{
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"strict": true,
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"types": ["node", "$app/types"]
+	},
+	"include": ["src", "vite.config.ts"]
+}
