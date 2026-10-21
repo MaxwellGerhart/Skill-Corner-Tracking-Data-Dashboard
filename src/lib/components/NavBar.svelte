@@ -4,6 +4,13 @@
 	import Eyebrow from './Eyebrow.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import skillCornerLogo from '../assets/skillcorner/logo-light.svg';
+	import { palette } from '../stores/palette.svelte';
+
+	// Shown on the search trigger; Apple platforms use ⌘, everything else Ctrl.
+	let shortcut = $state('Ctrl K');
+	$effect(() => {
+		if (/Mac|iPhone|iPad/.test(navigator.platform)) shortcut = '⌘K';
+	});
 
 	let drawerOpen = $state(false);
 
@@ -24,6 +31,16 @@
 		<img src={skillCornerLogo} alt="SkillCorner" class="h-4.5 w-auto" />
 	</a>
 	<div class="flex items-center gap-1">
+		<button
+			type="button"
+			onclick={() => (palette.open = true)}
+			aria-label="Search"
+			class="grid h-9 w-9 cursor-pointer place-items-center border-0 bg-transparent text-paper-50"
+		>
+			<svg viewBox="0 0 24 24" class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" />
+			</svg>
+		</button>
 		<ThemeToggle />
 		<button
 			type="button"
@@ -75,6 +92,17 @@
 	<a href="/" class="mb-6 flex items-center px-3">
 		<img src={skillCornerLogo} alt="SkillCorner" class="h-12 w-auto" />
 	</a>
+	<button
+		type="button"
+		onclick={() => (palette.open = true)}
+		class="mb-4 flex cursor-pointer items-center gap-2.5 border border-ink-800 bg-ink-900 px-3 py-2 text-left text-sm text-ink-400 transition-colors hover:border-ink-700 hover:text-paper-50"
+	>
+		<svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+			<circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" />
+		</svg>
+		<span class="flex-1">Search</span>
+		<kbd class="border border-ink-700 px-1.5 py-0.5 font-mono text-[10px] text-ink-400">{shortcut}</kbd>
+	</button>
 	{#each NAV_ITEMS as item (item.href)}
 		<a
 			href={item.href}

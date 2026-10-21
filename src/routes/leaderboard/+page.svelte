@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { getFilterState, applyFilters } from '../../lib/stores/filters.svelte';
-	import { PageShell, FilterBar, MetricSelect, EmptyState, PositionTag, PlayerAvatar } from '#lib';
+	import { PageShell, FilterBar, MetricSelect, EmptyState, PositionTag, PlayerAvatar, SlidingTabs } from '#lib';
+	import ChartTooltip from '../../lib/components/ChartTooltip.svelte';
 	import { METRICS, getMetric, type MetricDef } from '../../lib/data/metrics';
 	import { formatByUnit } from '../../lib/utils/format';
 	import { groupBy, percentileRank } from '../../lib/utils/stats';
@@ -76,6 +77,31 @@
 		return result;
 	});
 
+	// Hovered metric cell, for the tooltip: anchored to the cell's top centre in the
+	// table wrapper's coordinates, so it glides from cell to cell as the pointer moves.
+	let wrapper = $state<HTMLDivElement>();
+	let hoverCell = $state<{ player: PlayerRecord; metric: MetricDef; x: number; y: number } | null>(null);
+	let shownCell = $state<{ player: PlayerRecord; metric: MetricDef } | null>(null);
+	$effect(() => {
+		if (hoverCell) shownCell = hoverCell;
+	});
+
+	function onCellOver(e: PointerEvent) {
+		const td = (e.target as HTMLElement).closest<HTMLElement>('td[data-metric]');
+		if (!td || !wrapper) return (hoverCell = null);
+		const player = sorted.find((p) => p.id === td.dataset.player);
+		if (!player) return (hoverCell = null);
+		const cell = td.getBoundingClientRect();
+		const box = wrapper.getBoundingClientRect();
+		hoverCell = { player, metric: getMetric(td.dataset.metric!), x: cell.left + cell.width / 2 - box.left, y: cell.top - box.top };
+	}
+
+	function ordinal(n: number): string {
+		const r = Math.round(n);
+		const suffix = r % 100 >= 11 && r % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[r % 10] ?? 'th';
+		return `${r}${suffix}`;
+	}
+
 	function cellPercentile(player: PlayerRecord, metric: MetricDef): number {
 		const values = percentilesByPosition.get(player.position)?.get(metric.key);
 		if (!values) return NaN;
@@ -105,20 +131,22 @@
 
 	<div class="flex flex-wrap items-end gap-4">
 		<MetricSelect bind:value={sortKey} options={METRICS} label="Sort by" />
-		<button
-			type="button"
-			onclick={() => (sortDir = sortDir === 'asc' ? 'desc' : 'asc')}
-			class="cursor-pointer border border-border bg-bg-raised px-3 py-2 text-xs tracking-[0.08em] text-fg-soft uppercase hover:border-fg-soft hover:text-fg"
-		>
-			{sortDir === 'desc' ? 'Descending ↓' : 'Ascending ↑'}
-		</button>
+		<SlidingTabs
+			label="Sort direction"
+			bind:value={sortDir}
+			options={[
+				{ value: 'desc', label: 'High → low' },
+				{ value: 'asc', label: 'Low → high' }
+			]}
+			class="h-[38px] items-center"
+		/>
 		<span class="text-xs text-fg-faint">{sorted.length} player-positions</span>
 	</div>
 
 	{#if sorted.length === 0}
 		<EmptyState />
 	{:else}
-		<div class="relative border border-border bg-bg-raised">
+		<div bind:this={wrapper} class="relative border border-border bg-bg-raised">
 		<div bind:this={scroller} class="overflow-x-auto" onscroll={updateScrollEdges}>
 			<table class="w-full min-w-240 border-collapse text-sm">
 				<thead bind:clientHeight={headHeight}>
@@ -151,7 +179,7 @@
 						{/each}
 					</tr>
 				</thead>
-				<tbody>
+				<tbody onpointerover={onCellOver} onpointerleave={() => (hoverCell = null)}>
 					{#each sorted as player (player.id)}
 						<tr class="border-b border-border last:border-b-0">
 							<td class="frozen-col sticky left-0 z-10 bg-bg-raised px-4 py-2.5 whitespace-nowrap" class:scrolled={scrolledX}>
@@ -163,7 +191,12 @@
 							<td class="px-4 py-2.5 whitespace-nowrap text-fg-soft">{player.team}</td>
 							<td class="px-4 py-2.5 whitespace-nowrap"><PositionTag position={player.position} /></td>
 							{#each METRICS as metric (metric.key)}
-								<td class="px-4 py-2.5 text-right font-mono tabular-nums" style={shadeStyle(cellPercentile(player, metric))}>
+								<td
+									data-player={player.id}
+									data-metric={metric.key}
+									class="px-4 py-2.5 text-right font-mono tabular-nums"
+									style={shadeStyle(cellPercentile(player, metric))}
+								>
 									{formatByUnit(metric.access(player), metric.unit)}
 								</td>
 							{/each}
@@ -173,6 +206,20 @@
 			</table>
 		</div>
 		<div class="edge-fade" class:visible={moreRight} style="--head-h: {headHeight}px" aria-hidden="true"></div>
+		<ChartTooltip open={hoverCell !== null} x={hoverCell?.x ?? 0} y={hoverCell?.y ?? 0} placement="above">
+			{#if shownCell}
+				{@const pct = cellPercentile(shownCell.player, shownCell.metric)}
+				<div class="grid gap-0.5">
+					<div class="flex justify-between gap-4">
+						<span class="text-fg-soft">{shownCell.metric.label}</span>
+						<span class="font-mono font-medium text-fg tabular-nums">{formatByUnit(shownCell.metric.access(shownCell.player), shownCell.metric.unit)}</span>
+					</div>
+					<div class="text-fg-faint">
+						{Number.isFinite(pct) ? `${ordinal(pct)} percentile` : 'No percentile'} among {shownCell.player.position}s
+					</div>
+				</div>
+			{/if}
+		</ChartTooltip>
 		</div>
 	{/if}
 </PageShell>

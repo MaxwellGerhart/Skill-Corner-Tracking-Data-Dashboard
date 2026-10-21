@@ -54,12 +54,18 @@
 		<EmptyState />
 	{:else}
 		<section class="grid grid-cols-2 border-t border-l border-border lg:grid-cols-4">
-			<KpiCard label="Players" value={formatInt(kpis.distinctPlayers)} caption="Unique players (some play more than one position)" />
-			<KpiCard label="Teams" value={formatInt(kpis.distinctTeams)} />
-			<KpiCard label="Total runs" value={formatInt(kpis.totalRuns)} caption="Across the filtered sample" />
+			<KpiCard
+				label="Players"
+				value={kpis.distinctPlayers}
+				format={formatInt}
+				caption="Unique players (some play more than one position)"
+			/>
+			<KpiCard label="Teams" value={kpis.distinctTeams} format={formatInt} />
+			<KpiCard label="Total runs" value={kpis.totalRuns} format={formatInt} caption="Across the filtered sample" />
 			<KpiCard
 				label="League-wide % dangerous"
-				value={formatPct(kpis.leagueWidePctDangerous)}
+				value={kpis.leagueWidePctDangerous}
+				format={formatPct}
 				caption="Share of all runs rated dangerous"
 			/>
 		</section>

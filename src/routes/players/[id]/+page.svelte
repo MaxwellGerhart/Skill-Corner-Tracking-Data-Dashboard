@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { PageShell, PositionTag, RunTypeMixBar, FunnelSteps, PercentileBar, TeamLogo, PlayerAvatar } from '#lib';
+	import { PageShell, PositionTag, RunTypeMixBar, FunnelSteps, PercentileBar, TeamLogo, PlayerAvatar, AnimatedNumber } from '#lib';
 	import { SPECIFIC_RUN_TYPE_DEFINITIONS } from '../../../lib/data/runTypes';
 	import { METRICS, type MetricDef } from '../../../lib/data/metrics';
 	import { median, percentileRank } from '../../../lib/utils/stats';
@@ -82,11 +82,11 @@
 			<div class="flex flex-wrap gap-6 text-sm">
 				<div class="grid">
 					<span class="text-[10px] tracking-[0.1em] text-fg-faint uppercase">Matches</span>
-					<span class="font-mono font-medium text-fg tabular-nums">{formatInt(player.matches)}</span>
+					<span class="font-mono font-medium text-fg tabular-nums"><AnimatedNumber value={player.matches} format={formatInt} duration={900} /></span>
 				</div>
 				<div class="grid">
 					<span class="text-[10px] tracking-[0.1em] text-fg-faint uppercase">Minutes in possession / match</span>
-					<span class="font-mono font-medium text-fg tabular-nums">{player.minutesTip.toFixed(1)}</span>
+					<span class="font-mono font-medium text-fg tabular-nums"><AnimatedNumber value={player.minutesTip} format={(n) => n.toFixed(1)} duration={900} /></span>
 				</div>
 			</div>
 		</div>

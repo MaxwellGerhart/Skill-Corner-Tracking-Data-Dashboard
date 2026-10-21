@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { PageShell } from '#lib';
+	import { PageShell, SlidingTabs } from '#lib';
 	import MatchViewer from '../../../lib/components/match/MatchViewer.svelte';
 	import { RUN_LABELS } from '../../../lib/match/models';
 	import type { MatchRun, Side } from '../../../lib/match/types';
@@ -87,19 +87,13 @@
 				{/if}
 			</div>
 
-			<div class="flex flex-wrap gap-1 border-b border-border" role="tablist">
-				{#each TABS as t (t.key)}
-					<button
-						type="button"
-						role="tab"
-						aria-selected={tab === t.key}
-						onclick={() => (tab = t.key)}
-						class="-mb-px cursor-pointer border-0 border-b-2 bg-transparent px-3 py-2 text-xs {tab === t.key ? 'border-accent-ink text-fg' : 'border-transparent text-fg-faint hover:text-fg'}"
-					>
-						{t.label} <span class="font-mono tabular-nums text-fg-faint">{tabCounts[t.key]}</span>
-					</button>
-				{/each}
-			</div>
+			<SlidingTabs
+				variant="underline"
+				label="Key moment type"
+				bind:value={tab}
+				options={TABS.map((t) => ({ value: t.key, label: t.label, count: tabCounts[t.key] }))}
+				class="flex w-full flex-wrap"
+			/>
 
 			<div class="max-h-[28rem] overflow-y-auto">
 				<table class="w-full border-collapse text-sm">

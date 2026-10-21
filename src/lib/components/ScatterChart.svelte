@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChartTooltip from './ChartTooltip.svelte';
 	import Marker from './Marker.svelte';
 	import { POSITION_SHAPE, positionColorVar } from '../utils/positions';
 	import { niceTicks } from '../utils/ticks';
@@ -67,6 +68,11 @@
 	let tooltipPos = $state<{ x: number; y: number } | null>(null);
 
 	const hovered = $derived(renderPoints.find((p) => p.id === hoveredId) ?? null);
+	// The last hovered point stays as the tooltip's content while it fades out.
+	let shown = $state<(typeof renderPoints)[number] | null>(null);
+	$effect(() => {
+		if (hovered) shown = hovered;
+	});
 
 	function handlePointerMove(e: PointerEvent) {
 		if (!svgEl || !wrapperEl) return;
@@ -92,17 +98,20 @@
 		const hitRadiusUser = 24 / ctm.a;
 		if (nearest && nearestDistSq <= hitRadiusUser * hitRadiusUser) {
 			hoveredId = nearest.id;
+			// Anchor to the point itself (not the cursor), so the tooltip glides from point
+			// to point as the hover moves across the cloud.
 			const wrapperRect = wrapperEl.getBoundingClientRect();
-			tooltipPos = { x: e.clientX - wrapperRect.left, y: e.clientY - wrapperRect.top };
+			tooltipPos = {
+				x: ctm.a * nearest.cx + ctm.e - wrapperRect.left,
+				y: ctm.d * nearest.cy + ctm.f - wrapperRect.top
+			};
 		} else {
 			hoveredId = null;
-			tooltipPos = null;
 		}
 	}
 
 	function handleLeave() {
 		hoveredId = null;
-		tooltipPos = null;
 	}
 
 	function handleClick() {
@@ -173,29 +182,29 @@
 					size={isHovered ? 11 : 9}
 					outline="var(--color-fg)"
 					outlineWidth={0.6}
-					outlineOpacity={isHovered ? 0.95 : 0.7}
+					outlineOpacity={1}
 					halo="var(--color-bg-raised)"
+					haloWidth={1}
 				/>
 			</g>
 		{/each}
 	</svg>
 
-	{#if hovered && tooltipPos}
-		<div
-			class="pointer-events-none absolute z-10 min-w-44 border border-border bg-bg-raised px-3 py-2 text-xs shadow-lg"
-			style="left: {Math.min(tooltipPos.x + 12, 420)}px; top: {Math.max(tooltipPos.y - 12, 0)}px"
-		>
-			<div class="font-medium text-fg">{hovered.label}</div>
-			<div class="text-fg-faint">{hovered.sublabel}</div>
-			<div class="mt-1.5 flex justify-between gap-4">
-				<span class="text-fg-soft">{xLabel}</span>
-				<span class="font-mono font-medium text-fg tabular-nums">{formatByUnit(hovered.x, xUnit)}</span>
+	<ChartTooltip open={hovered !== null} x={tooltipPos?.x ?? 0} y={tooltipPos?.y ?? 0}>
+		{#if shown}
+			<div class="min-w-44">
+				<div class="font-medium text-fg">{shown.label}</div>
+				<div class="text-fg-faint">{shown.sublabel}</div>
+				<div class="mt-1.5 flex justify-between gap-4">
+					<span class="text-fg-soft">{xLabel}</span>
+					<span class="font-mono font-medium text-fg tabular-nums">{formatByUnit(shown.x, xUnit)}</span>
+				</div>
+				<div class="flex justify-between gap-4">
+					<span class="text-fg-soft">{yLabel}</span>
+					<span class="font-mono font-medium text-fg tabular-nums">{formatByUnit(shown.y, yUnit)}</span>
+				</div>
+				<div class="mt-1.5 text-[11px] text-accent-ink">Click to open profile →</div>
 			</div>
-			<div class="flex justify-between gap-4">
-				<span class="text-fg-soft">{yLabel}</span>
-				<span class="font-mono font-medium text-fg tabular-nums">{formatByUnit(hovered.y, yUnit)}</span>
-			</div>
-			<div class="mt-1.5 text-[11px] text-accent-ink">Click to open profile →</div>
-		</div>
-	{/if}
+		{/if}
+	</ChartTooltip>
 </div>

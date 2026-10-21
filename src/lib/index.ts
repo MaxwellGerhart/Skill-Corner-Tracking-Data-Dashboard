@@ -21,3 +21,6 @@ export { default as FunnelSteps } from './components/FunnelSteps.svelte';
 export { default as ScatterChart } from './components/ScatterChart.svelte';
 export { default as TeamLogo } from './components/TeamLogo.svelte';
 export { default as PlayerAvatar } from './components/PlayerAvatar.svelte';
+export { default as SlidingTabs } from './components/SlidingTabs.svelte';
+export { default as AnimatedNumber } from './components/AnimatedNumber.svelte';
+export { default as Select } from './components/Select.svelte';

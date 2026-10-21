@@ -3,6 +3,9 @@
 	import { getFilterState, applyFilters } from '../../lib/stores/filters.svelte';
 	import { PageShell, FilterBar, EmptyState, PositionTag, PlayerAvatar } from '#lib';
 	import { formatPct, formatRate } from '../../lib/utils/format';
+	import { flip } from 'svelte/animate';
+	import { easeOut, reduceMotion } from '../../lib/utils/motion';
+	import { reveal } from '../../lib/utils/reveal';
 
 	let { data }: { data: PageData } = $props();
 	const filters = getFilterState();
@@ -46,16 +49,20 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 			{#each results as player (player.id)}
+				<!-- flip: when a filter or search changes the list, cards that stay glide to their
+				     new grid slots; newly listed cards fade up via the reveal. -->
 				<a
 					href="/players/{player.id}"
-					class="block focus-visible:outline-2 focus-visible:outline-accent-ink focus-visible:outline-offset-2"
+					animate:flip={{ duration: reduceMotion() ? 0 : 420, easing: easeOut }}
+					class="group block focus-visible:outline-2 focus-visible:outline-accent-ink focus-visible:outline-offset-2"
 				>
 					<div
-						class="chamfer-sm grid gap-2 border border-border bg-bg-raised p-4 transition-colors hover:border-accent-ink"
+						use:reveal
+						class="player-card chamfer-sm grid gap-2 border border-border bg-bg-raised p-4 hover:border-accent-ink"
 					>
 						<div class="flex items-start justify-between gap-2">
 							<span class="flex items-center gap-3">
-								<PlayerAvatar playerId={player.playerId} name={player.player} hasHeadshot={player.hasHeadshot} size={40} />
+								<span class="avatar inline-flex"><PlayerAvatar playerId={player.playerId} name={player.player} hasHeadshot={player.hasHeadshot} size={40} /></span>
 								<span class="font-medium text-fg">{player.player}</span>
 							</span>
 							<PositionTag position={player.position} />
@@ -71,3 +78,34 @@
 		</div>
 	{/if}
 </PageShell>
+
+<style>
+	/* Hover: the card lifts a touch and its headshot nudges up in scale. */
+	.player-card {
+		transition:
+			transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+			border-color 150ms ease,
+			box-shadow 260ms ease;
+	}
+	.group:hover .player-card,
+	.group:focus-visible .player-card {
+		transform: translateY(-3px);
+		box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.45);
+	}
+	.avatar {
+		transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+	.group:hover .avatar {
+		transform: scale(1.08);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.player-card,
+		.avatar {
+			transition: border-color 150ms ease;
+		}
+		.group:hover .player-card,
+		.group:hover .avatar {
+			transform: none;
+		}
+	}
+</style>

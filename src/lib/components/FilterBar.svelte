@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getFilterState, ALL } from '../stores/filters.svelte';
 	import type { Dataset } from '../data/types';
+	import Select from './Select.svelte';
 
 	let { dataset }: { dataset: Dataset } = $props();
 
@@ -8,31 +9,19 @@
 </script>
 
 <div class="flex flex-wrap items-end gap-4 border border-border bg-bg-raised p-4">
-	<label class="grid gap-1 text-xs text-fg-soft">
-		Position
-		<select
-			bind:value={filters.position}
-			class="border border-border bg-bg px-3 py-2 text-sm text-fg focus:border-accent-ink focus-visible:outline-2 focus-visible:outline-accent-ink focus-visible:outline-offset-1"
-		>
-			<option value={ALL}>All positions</option>
-			{#each dataset.positions as position (position)}
-				<option value={position}>{position}</option>
-			{/each}
-		</select>
-	</label>
+	<Select
+		label="Position"
+		bind:value={filters.position}
+		options={[{ value: ALL, label: 'All positions' }, ...dataset.positions.map((p) => ({ value: p, label: p }))]}
+		class="w-44"
+	/>
 
-	<label class="grid gap-1 text-xs text-fg-soft">
-		Team
-		<select
-			bind:value={filters.team}
-			class="max-w-50 border border-border bg-bg px-3 py-2 text-sm text-fg focus:border-accent-ink focus-visible:outline-2 focus-visible:outline-accent-ink focus-visible:outline-offset-1"
-		>
-			<option value={ALL}>All teams</option>
-			{#each dataset.teams as team (team)}
-				<option value={team}>{team}</option>
-			{/each}
-		</select>
-	</label>
+	<Select
+		label="Team"
+		bind:value={filters.team}
+		options={[{ value: ALL, label: 'All teams' }, ...dataset.teams.map((t) => ({ value: t, label: t }))]}
+		class="w-60"
+	/>
 
 	<label class="grid gap-1 text-xs text-fg-soft">
 		Min. matches: <span class="font-mono text-fg">{filters.minMatches}</span>

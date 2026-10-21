@@ -85,6 +85,7 @@
 	import { clockAt, headings, interpolate, periodAt, pitchControl, scoreAt, speed, velocities, RUN_LABELS, type Vec } from '../../match/models';
 	import type { Frame, MatchEvents, MatchMeta, MatchRun } from '../../match/types';
 	import TeamLogo from '../TeamLogo.svelte';
+	import SlidingTabs from '../SlidingTabs.svelte';
 
 	let {
 		meta,
@@ -413,14 +414,10 @@
 				{playing ? 'Pause' : 'Play'}
 			</button>
 			<button type="button" onclick={() => seekBy(5)} class="h-9 cursor-pointer border border-border bg-transparent px-3 text-xs text-fg-soft hover:border-fg-soft hover:text-fg" aria-label="Forward 5 seconds">+5s</button>
-			<label class="ml-auto flex items-center gap-2 text-xs text-fg-faint">
-				Speed
-				<select bind:value={playbackSpeed} class="h-9 border border-border bg-bg-raised px-2 font-mono text-xs text-fg">
-					{#each SPEEDS as s (s)}
-						<option value={s}>{s}×</option>
-					{/each}
-				</select>
-			</label>
+			<div class="ml-auto flex items-center gap-2 text-xs text-fg-faint">
+				<span aria-hidden="true">Speed</span>
+				<SlidingTabs label="Playback speed" bind:value={playbackSpeed} options={SPEEDS.map((s) => ({ value: s, label: `${s}×` }))} />
+			</div>
 		</div>
 
 		<div class="relative h-8">

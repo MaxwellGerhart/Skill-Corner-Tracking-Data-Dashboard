@@ -4,6 +4,7 @@
 	import NavBar from '#lib/components/NavBar.svelte';
 	import Footer from '#lib/components/Footer.svelte';
 	import BackgroundDecor from '#lib/components/BackgroundDecor.svelte';
+	import CommandPalette from '#lib/components/CommandPalette.svelte';
 	import { setFilterState } from '../lib/stores/filters.svelte';
 	import type { LayoutProps } from './$types';
 
@@ -31,3 +32,5 @@
 		<Footer />
 	</div>
 </div>
+
+<CommandPalette dataset={data.dataset} matches={data.matches} />
